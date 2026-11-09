@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" href="favicon.ico">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#12100E">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>張愛玲的跳蚤 · CAVE AR</title>
+  <meta name="description" content="Eileen Chang's Fleas — an AR game for the CAVE room. 張愛玲的跳蚤 · 沉浸式擴增實境">
+  <meta name="robots" content="index,follow">
+  <link rel="preload" href="markers/MARKER_A.png" as="image">
+  <link rel="stylesheet" href="./src/styles/cave.css">
+</head>
+
+<body>
+  <script type="module" src="./src/main.ts"></script>
+  <!-- Children of <needle-engine> become the WebXR DOM overlay, so the UI stays visible in AR. -->
+  <needle-engine camera-controls="0" loading-style="dark" background-color="#12100E" tone-mapping="neutral">
+    <div id="app" class="app">
+
+      <div id="backdrop" class="backdrop">
+        <canvas id="speckField" class="speck-field"></canvas>
+        <div class="vignette"></div>
+      </div>
+
+      <!-- Title -->
+      <section id="titleScreen" class="screen safe">
+        <div class="topbar">
+          <span class="eyebrow">沉浸式擴增實境 · CAVE AR</span>
+          <button id="titleSettings" class="icon-btn" aria-label="Operator settings"><i data-icon="settings"></i></button>
+        </div>
+        <div class="title-body">
+          <p class="kicker">一九八四 · 洛杉磯</p>
+          <h1 class="display">張愛玲的跳蚤</h1>
+          <p class="display-en">EILEEN CHANG'S FLEAS</p>
+          <div class="rule"></div>
+          <p class="quote">「生命是一襲華美的袍，爬滿了蚤子。」</p>
+          <p class="quote-en">Life is a gorgeous robe, crawling with fleas.</p>
+          <p class="cite">——張愛玲〈天才夢〉，1939</p>
+        </div>
+        <div class="bottom-actions">
+          <button id="startButton" class="btn btn--primary">
+            <span class="btn__zh">進入房間</span><span class="btn__en">ENTER THE ROOM</span>
+          </button>
+          <p class="footnote">請於 CAVE 空間內遊玩 · Play inside the CAVE</p>
+          <p id="previewNote" class="footnote footnote--warn is-hidden">此瀏覽器不支援 AR，將以預覽模式遊玩 · No AR in this browser, playing in preview mode</p>
+        </div>
+      </section>
+
+      <!-- Story -->
+      <section id="storyScreen" class="screen safe is-hidden">
+        <div class="topbar">
+          <span id="storyStep" class="eyebrow">01 / 04</span>
+          <button id="storySkip" class="btn-text"><span>略過 SKIP</span></button>
+        </div>
+        <div id="storyPage" class="story-page">
+          <p id="storyKicker" class="kicker"></p>
+          <h2 id="storyTitle" class="h1"></h2>
+          <p id="storyTitleEn" class="h1-en"></p>
+          <div class="rule rule--short"></div>
+          <p id="storyBody" class="body"></p>
+          <p id="storyBodyEn" class="body-en"></p>
+          <div id="howTo" class="howto">
+            <div class="howto__step">
+              <span class="howto__num">1</span>
+              <div class="howto__text">
+                <p class="howto__zh">掃描地面中央的標記 A，讓房間對齊。</p>
+                <p class="howto__en">Scan Marker A at the floor center to align the room.</p>
+              </div>
+            </div>
+            <div class="howto__step">
+              <span class="howto__num">2</span>
+              <div class="howto__text">
+                <p class="howto__zh">在空間中走動，尋找地面、家具與牆上的蟲群。</p>
+                <p class="howto__en">Walk around. Find the swarms on the floor, furniture and walls.</p>
+              </div>
+            </div>
+            <div class="howto__step">
+              <span class="howto__num">3</span>
+              <div class="howto__text">
+                <p class="howto__zh">走近、瞄準，按住噴灑兩秒將牠們清除。</p>
+                <p class="howto__en">Get close, aim, and hold Spray for two seconds.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="bottom-actions">
+          <div class="dots">
+            <span class="dot dot--active"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span>
+          </div>
+          <button id="storyNext" class="btn btn--primary">
+            <span id="storyNextZh" class="btn__zh">繼續</span><span id="storyNextEn" class="btn__en">CONTINUE</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- Scan -->
+      <section id="scanScreen" class="screen safe is-hidden">
+        <div class="topbar">
+          <button id="scanBack" class="icon-btn icon-btn--glass" aria-label="Back"><i data-icon="back"></i></button>
+          <div class="topbar__center">
+            <span class="topbar__title">對齊空間</span>
+            <span class="topbar__sub">ALIGN THE ROOM</span>
+          </div>
+          <span class="icon-btn icon-btn--spacer"></span>
+        </div>
+        <div class="scan-stage">
+          <canvas id="scanFrame" class="scan-frame"></canvas>
+        </div>
+        <div class="sheet">
+          <div class="sheet__row">
+            <div class="marker-thumb"><img src="markers/MARKER_A.png" alt="Marker A"></div>
+            <div class="sheet__text">
+              <p id="scanTitle" class="h3">掃描地面中央的標記 A</p>
+              <p id="scanBodyEn" class="body-en body-en--tight">Point the camera at Marker A, lying at the center of the floor.</p>
+            </div>
+          </div>
+          <div id="scanStatus" class="status">
+            <span class="status__dot"></span>
+            <span id="scanStatusZh" class="status__zh">尋找標記中</span>
+            <span id="scanStatusEn" class="status__en">LOOKING FOR MARKER</span>
+          </div>
+          <div id="placeActions" class="place-actions is-hidden">
+            <button id="placeButton" class="btn btn--primary btn--compact" disabled>
+              <span class="btn__zh">放置房間</span><span class="btn__en">PLACE ROOM HERE</span>
+            </button>
+          </div>
+          <button id="usePlacement" class="btn-link is-hidden">找不到標記？改為點選地面放置 · Can't scan? Place on the floor</button>
+          <p id="scanFootnote" class="footnote footnote--left">保持手機穩定，距離標記約一公尺。Hold steady, about 1 m above the marker.</p>
+        </div>
+      </section>
+
+      <!-- HUD -->
+      <section id="hudScreen" class="screen safe is-hidden passthrough">
+        <div class="hud-top">
+          <div class="capsule">
+            <div class="capsule__cell">
+              <span class="capsule__label">剩餘 REMAINING</span>
+              <div class="capsule__value-row">
+                <span id="remainingValue" class="capsule__value">25</span>
+                <span id="totalValue" class="capsule__total">/ 25</span>
+              </div>
+            </div>
+            <div class="capsule__divider"></div>
+            <div class="capsule__cell">
+              <span class="capsule__label">時間 TIME</span>
+              <span id="timeValue" class="capsule__value">05:00</span>
+            </div>
+          </div>
+          <button id="pauseButton" class="icon-btn icon-btn--glass" aria-label="Pause"><i data-icon="pause"></i></button>
+        </div>
+        <div class="cleared-track"><div id="clearedFill" class="cleared-fill"></div></div>
+        <div id="hint" class="hint hint--hidden">
+          <span id="hintZh" class="hint__zh"></span><span id="hintEn" class="hint__en"></span>
+        </div>
+        <div class="reticle-layer">
+          <canvas id="reticle" class="reticle"></canvas>
+        </div>
+        <div class="hud-bottom">
+          <span id="targetLabel" class="target-label target-label--hidden"></span>
+          <div id="sprayButton" class="spray spray--idle" role="button" aria-label="Spray (hold)">
+            <div id="sprayRing" class="spray__ring"></div>
+            <div class="spray__core">
+              <i data-icon="spray" class="spray__icon"></i>
+              <span class="spray__zh">噴灑</span>
+              <span class="spray__en">HOLD 2S</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- End -->
+      <section id="endScreen" class="screen safe is-hidden">
+        <div class="topbar">
+          <span id="endKicker" class="eyebrow">清除完成 · ROOM CLEARED</span>
+        </div>
+        <div class="end-body">
+          <h2 id="endTitle" class="display display--md">房間暫時安靜了</h2>
+          <p id="endTitleEn" class="display-en">THE ROOM IS QUIET, FOR NOW</p>
+          <div class="stats">
+            <div class="stat">
+              <span id="statCleared" class="stat__value">25/25</span>
+              <span class="stat__label">清除 CLEARED</span>
+            </div>
+            <div class="stat stat--mid">
+              <span id="statTime" class="stat__value">03:12</span>
+              <span class="stat__label">用時 TIME</span>
+            </div>
+            <div class="stat stat--last">
+              <span id="statRegrew" class="stat__value">0</span>
+              <span class="stat__label">復發 RETURNED</span>
+            </div>
+          </div>
+          <div class="rule"></div>
+          <p id="endQuote" class="quote"></p>
+          <p id="endQuoteEn" class="quote-en"></p>
+        </div>
+        <div class="bottom-actions">
+          <button id="replayButton" class="btn btn--primary">
+            <span class="btn__zh">再清一次</span><span class="btn__en">PLAY AGAIN</span>
+          </button>
+          <button id="homeButton" class="btn btn--secondary">
+            <span class="btn__zh">返回首頁</span><span class="btn__en">HOME</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- Pause -->
+      <div id="pauseOverlay" class="overlay safe is-hidden">
+        <div class="card">
+          <h3 class="h2">暫停</h3>
+          <p class="h2-en">PAUSED</p>
+          <button id="resumeButton" class="btn btn--primary">
+            <span class="btn__zh">繼續</span><span class="btn__en">RESUME</span>
+          </button>
+          <button id="pauseRealign" class="btn btn--secondary">
+            <span class="btn__zh">重新對齊</span><span class="btn__en">RE-ALIGN</span>
+          </button>
+          <button id="pauseSettings" class="btn btn--secondary">
+            <span class="btn__zh">操作員設定</span><span class="btn__en">OPERATOR</span>
+          </button>
+          <button id="pauseQuit" class="btn btn--ghost">
+            <span class="btn__zh">結束回合</span><span class="btn__en">END ROUND</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Tracking lost -->
+      <div id="trackingOverlay" class="overlay safe is-hidden">
+        <div class="card">
+          <div class="status status--warn">
+            <span id="trackingDot" class="status__dot"></span>
+            <span class="status__zh">追蹤中斷</span>
+            <span class="status__en">TRACKING LOST</span>
+          </div>
+          <p class="body">請緩慢移動手機，讓鏡頭看見房間的牆面與地面。若房間位置偏移，請重新掃描標記。</p>
+          <p class="body-en">Move the phone slowly so the camera can see the walls and floor. If the room looks misplaced, scan the marker again.</p>
+          <button id="trackingRealign" class="btn btn--primary">
+            <span class="btn__zh">重新對齊</span><span class="btn__en">RE-ALIGN</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Operator -->
+      <div id="operatorOverlay" class="overlay overlay--sheet is-hidden">
+        <div id="operatorSheet" class="op-sheet">
+          <div class="op-grabber"></div>
+          <div class="op-header">
+            <div>
+              <p class="h3">操作員設定</p>
+              <p class="h3-en">OPERATOR</p>
+            </div>
+            <button id="opClose" class="icon-btn icon-btn--dark" aria-label="Close"><i data-icon="close"></i></button>
+          </div>
+          <div class="op-scroll">
+            <p class="op-section">對齊 ALIGNMENT</p>
+            <div class="op-row">
+              <div class="op-row__label"><p class="op-row__zh">狀態</p><p class="op-row__en">Status</p></div>
+              <span id="opStatus" class="op-value">未對齊</span>
+            </div>
+            <div class="op-row">
+              <div class="op-row__label"><p class="op-row__zh">AR 狀態</p><p class="op-row__en">AR session</p></div>
+              <span id="opAR" class="op-value op-value--diag">-</span>
+            </div>
+            <div class="op-row">
+              <div class="op-row__label"><p class="op-row__zh">旋轉</p><p class="op-row__en">Yaw</p></div>
+              <div class="stepper">
+                <button id="opYawM90" class="stepper__btn">−90</button>
+                <button id="opYawM1" class="stepper__btn">−1</button>
+                <span id="opYaw" class="op-value">0°</span>
+                <button id="opYawP1" class="stepper__btn">+1</button>
+                <button id="opYawP90" class="stepper__btn">+90</button>
+              </div>
+            </div>
+            <div class="op-row">
+              <div class="op-row__label"><p class="op-row__zh">左右位移</p><p class="op-row__en">Offset X</p></div>
+              <div class="stepper">
+                <button id="opXMinus" class="stepper__btn">−</button>
+                <span id="opX" class="op-value">0 cm</span>
+                <button id="opXPlus" class="stepper__btn">+</button>
+              </div>
+            </div>
+            <div class="op-row">
+              <div class="op-row__label"><p class="op-row__zh">前後位移</p><p class="op-row__en">Offset Z</p></div>
+              <div class="stepper">
+                <button id="opZMinus" class="stepper__btn">−</button>
+                <span id="opZ" class="op-value">0 cm</span>
+                <button id="opZPlus" class="stepper__btn">+</button>
+              </div>
+            </div>
+            <div class="op-actions">
+              <button id="opRealign" class="btn btn--secondary btn--small"><span class="btn__zh">重新對齊 Re-align</span></button>
+              <button id="opReset" class="btn btn--secondary btn--small"><span class="btn__zh">重設 Reset</span></button>
+            </div>
+
+            <p class="op-section">顯示 DISPLAY</p>
+            <div class="op-row">
+              <div class="op-row__label"><p class="op-row__zh">洞穴線框</p><p class="op-row__en">Show the cave mesh to check alignment</p></div>
+              <button id="opWireframe" class="switch" role="switch" aria-label="Wireframe"><span class="switch__knob"></span></button>
+            </div>
+
+            <p class="op-section">回合 ROUND</p>
+            <div class="op-row">
+              <div class="op-row__label"><p class="op-row__zh">蟲群復發</p><p class="op-row__en">Cleared swarms may come back</p></div>
+              <button id="opRegrowth" class="switch" role="switch" aria-label="Regrowth"><span class="switch__knob"></span></button>
+            </div>
+            <div class="op-row">
+              <div class="op-row__label"><p class="op-row__zh">回合時間</p><p class="op-row__en">Round length</p></div>
+              <div class="segmented">
+                <button id="opTime3" class="segmented__item">3 分</button>
+                <button id="opTime5" class="segmented__item">5 分</button>
+                <button id="opTime8" class="segmented__item">8 分</button>
+              </div>
+            </div>
+            <p class="op-footer">CAVE AR · 張愛玲的跳蚤 · v1.0 web</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Toast -->
+      <div id="toast" class="toast safe toast--hidden">
+        <div class="toast__pill">
+          <i data-icon="check" class="toast__mark"></i>
+          <span id="toastZh" class="toast__zh"></span>
+          <span id="toastEn" class="toast__en"></span>
+        </div>
+      </div>
+    </div>
+  </needle-engine>
+</body>
+
+</html>

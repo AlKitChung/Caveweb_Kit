@@ -1,0 +1,28 @@
+{
+  "name": "cave-ar-web",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "vite --host",
+    "start": "npm run dev",
+    "build": "vite build -- --production",
+    "build:production": "npm run build",
+    "build:dev": "vite build",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@needle-tools/engine": "^5.1.16",
+    "three": "npm:@needle-tools/three@0.169.19"
+  },
+  "devDependencies": {
+    "@needle-tools/helper": "^1.11.4",
+    "@types/three": "0.169.0",
+    "@vitejs/plugin-basic-ssl": "2",
+    "qrcode-terminal": "^0.12.0",
+    "typescript": "^5.0.4",
+    "vite": "8.0.3",
+    "vitest": "^5.0.5"
+  }
+}

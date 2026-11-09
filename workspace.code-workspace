@@ -1,0 +1,22 @@
+{
+  "folders": [
+    {
+      "path": "."
+    },
+    {
+      "path": "./node_modules/@needle-tools/engine"
+    }
+  ],
+  "settings": {
+    "compile-hero.disable-compile-files-on-did-save-code": true,
+    "window.title": "Needle Engine Vite Template",
+    "files.exclude": {
+      "**/.git": true,
+      "**/.DS_Store": true,
+      "**/*.meta": true
+    },
+    "html.customData": [
+      "./custom-elements.json"
+    ]
+  }
+}

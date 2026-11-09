@@ -1,0 +1,16 @@
+{
+  "sceneName": "Cave Game Web",
+  "meta": null,
+  "absolutePath": "https://localhost:3000",
+  "deployOnly": false,
+  "needleEditor": null,
+  "facebookInstantGames": null,
+  "allowHotReload": true,
+  "generator": "Unity 6000.6.6f1, Needle Engine Integration @5.1.16",
+  "developmentBuild": false,
+  "license": {
+    "team": "q7902l6dpsm5"
+  },
+  "gzip": false,
+  "useRapier": true
+}
